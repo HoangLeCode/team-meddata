@@ -46,12 +46,12 @@ Use one of these status labels: **Not started**, **In progress**, **Ready for te
 
 | Role file | Owner | Status |
 |---|---|---|
-| [`objectives.md`](objectives.md) | [Name or GitHub username] | [Status] |
-| [`alternatives.md`](alternatives.md) | [Name or GitHub username] | [Status] |
-| [`data-fit.md`](data-fit.md) | [Name or GitHub username] | [Status] |
-| [`auxiliary.md`](auxiliary.md) | [Name or GitHub username] | [Status] |
-| [`technical.md`](technical.md) | [Name or GitHub username] | [Status] |
-| [`objections.md`](objections.md) | [Name or GitHub username] | [Status; use Not applicable for teams with fewer than six members] |
+| [`objectives.md`](objectives.md) | eeshitawade | Not Started |
+| [`alternatives.md`](alternatives.md) | Xixi-Bao | Not Started |
+| [`data-fit.md`](data-fit.md) | anganame-cmd  | Not Started |
+| [`auxiliary.md`](auxiliary.md) | zihengzhang01 | Not Started |
+| [`technical.md`](technical.md) | HoangLeCode | Not Started |
+| [`objections.md`](objections.md) | N/A | N/A |
 
 ## Team check
 
