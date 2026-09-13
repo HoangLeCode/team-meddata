@@ -31,8 +31,7 @@ A workforce-planning director at the California Department of Health Care Servic
 
 ## Core data source we confirmed we can access
 
-[Source, original link, and what successfully opened.]
-
+Our core data source is the California Department of Health Care Services’ [Profile of Enrolled Medi-Cal Fee-for-Service (FFS) Providers](url). The dataset preview opened successfully and displayed information about enrolled FFS providers, including provider type, specialty, and geographic information.
 ## Three questions we still need to resolve
 
 1. Which provider-capacity measures, such as providers per 10,000 Medi-Cal eligibles, will most accurately identify counties with the greatest relative need?
