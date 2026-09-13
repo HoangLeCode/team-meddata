@@ -4,7 +4,7 @@
 
 | Team name | GitHub repository |
 |---|---|
-| [Team name] | [Link to the team's private GitHub repository] |
+| Team MedData | https://github.com/HoangLeCode/team-meddata |
 
 ## Selected project area
 
