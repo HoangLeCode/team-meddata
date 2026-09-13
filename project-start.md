@@ -11,16 +11,14 @@ Improving access to Medi-Cal providers across California.
 
 ## Why our team is interested in it
 
-Our team is interested in understanding differences in healthcare access across California. We want to explore how data could help DHCS identify communities with fewer Medi-Cal providers and make more informed provider-recruitment decisions.
+Our team is interested in understanding how access to Medi-Cal providers varies across California and which communities face the greatest gaps in care. By analyzing provider availability alongside county-level need, we aim to develop evidence that can help DHCS make more equitable, data-informed recruitment and workforce-planning decisions.
 
 ## Candidate Vision A
 
-[Role] at [organization] must decide [decision].
 A workforce-planning director at the California Department of Health Care Services (DHCS) must decide which California counties should be prioritized for overall Medi-Cal provider recruitment.
 
 ## Candidate Vision B
 
-[Role] at [organization] must decide [decision].
 A workforce-planning director at the California Department of Health Care Services (DHCS) must decide which county-specialty combinations should be prioritized for targeted Medi-Cal provider recruitment.
 
 ## Side-by-side candidate assessment
@@ -37,9 +35,10 @@ A workforce-planning director at the California Department of Health Care Servic
 
 ## Three questions we still need to resolve
 
-1. [Question]
-2. [Question]
-3. [Question]
+1. Which provider-capacity measures, such as providers per 10,000 Medi-Cal eligibles, will most accurately identify counties with the greatest relative need?
+2. Does the provider dataset contain sufficiently complete and reliable county and specialty information to support county-specialty comparisons?
+3. Given the available data and its limitations, is Vision A or Vision B more appropriate for a useful and defensible DHCS recruitment decision?
+
 
 ## Role-file progress
 
