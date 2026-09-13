@@ -3,24 +3,25 @@
 ## Team and GitHub
 
 | Team name | GitHub repository |
-|---|---|
 | Team MedData | https://github.com/HoangLeCode/team-meddata |
 
 ## Selected project area
 
-[Area]
+Improving access to Medi-Cal providers across California.
 
 ## Why our team is interested in it
 
-[Write 2-3 sentences.]
+Our team is interested in understanding differences in healthcare access across California. We want to explore how data could help DHCS identify communities with fewer Medi-Cal providers and make more informed provider-recruitment decisions.
 
 ## Candidate Vision A
 
 [Role] at [organization] must decide [decision].
+A workforce-planning director at the California Department of Health Care Services (DHCS) must decide which California counties should be prioritized for overall Medi-Cal provider recruitment.
 
 ## Candidate Vision B
 
 [Role] at [organization] must decide [decision].
+A workforce-planning director at the California Department of Health Care Services (DHCS) must decide which county-specialty combinations should be prioritized for targeted Medi-Cal provider recruitment.
 
 ## Side-by-side candidate assessment
 
