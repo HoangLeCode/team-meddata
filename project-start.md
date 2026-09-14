@@ -1,9 +1,10 @@
 # Project Starting Point
 
 ## Team and GitHub
-
 | Team name | GitHub repository |
-| Team MedData | https://github.com/HoangLeCode/team-meddata |
+|---|---|
+|MedData| https://github.com/HoangLeCode/team-meddata |
+
 
 ## Selected project area
 
@@ -25,9 +26,9 @@ A workforce-planning director at the California Department of Health Care Servic
 
 | Assessment | Vision A | Vision B |
 |---|---|---|
-| Evidence found so far | [Summarize the strongest verified evidence and link its original source.] | [Summarize the strongest verified evidence and link its original source.] |
-| Core-data fit | [Strong, partial, or weak—and one sentence explaining why.] | [Strong, partial, or weak—and one sentence explaining why.] |
-| Biggest risk | [What could prevent this Vision from supporting a useful, defensible decision?] | [What could prevent this Vision from supporting a useful, defensible decision?] |
+| Evidence found so far | The dataset includes county-level geographic information for enrolled Medi-Cal FFS providers, allowing us to compare provider distribution across California counties. Source: California DHCS, Profile of Enrolled Medi-Cal Fee-for-Service Providers | The dataset includes both county and provider specialty information, allowing us to compare provider distribution across county-specialty combinations. Source: California DHCS, Profile of Enrolled Medi-Cal Fee-for-Service Providers. |
+| Core-data fit | Partial — county information is available for nearly all California records, but the data does not directly measure patient demand or provider capacity.| Partial — the dataset includes both county and specialty, but specialty information is missing for about 41% of California records and the data does not directly measure patient demand. |
+| Biggest risk | Provider counts alone may not represent actual healthcare access, and some county values require cleaning before comparison.| Missing specialty data could distort county-specialty comparisons, and the dataset excludes Managed Care providers. |
 
 ## Core data source we confirmed we can access
 
