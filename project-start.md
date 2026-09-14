@@ -56,10 +56,10 @@ Use one of these status labels: **Not started**, **In progress**, **Ready for te
 ## Team check
 
 - [x] We added our team name and the correct private GitHub repository link.
-- [ ] We selected the area based first on genuine team interest.
-- [ ] A and B are distinct candidate Visions within the same area.
-- [ ] The candidate comparison uses verified evidence rather than unsupported claims.
-- [ ] At least one data source opened, or we recorded the access blocker.
-- [ ] We preserved three real questions instead of hiding uncertainty.
-- [ ] Every active role file has an owner and a current status.
-- [ ] Every teammate reviewed this provisional starting point.
+- [x] We selected the area based first on genuine team interest.
+- [x] A and B are distinct candidate Visions within the same area.
+- [x] The candidate comparison uses verified evidence rather than unsupported claims.
+- [x] At least one data source opened, or we recorded the access blocker.
+- [x] We preserved three real questions instead of hiding uncertainty.
+- [x] Every active role file has an owner and a current status.
+- [x] Every teammate reviewed this provisional starting point.
