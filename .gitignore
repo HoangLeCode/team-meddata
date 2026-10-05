@@ -4,6 +4,7 @@
 data/
 downloads/
 *.csv
+!medical_cleaned_sample_50.csv
 *.tsv
 *.parquet
 *.xlsx

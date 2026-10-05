@@ -70,3 +70,23 @@ The tutor generates difficult, one-at-a-time tracing questions covering the
 Module 1–3 Pandas vocabulary, including `.loc`, `.iloc`, filtering, sorting,
 cleaning, summaries, typed functions, and `.map()`. It deliberately excludes
 `groupby` and later-course shortcuts.
+
+## Module 6 Data Cleaning - Angana Shah
+
+Data source: California Department of Health Care Services (DHCS), Profile of Enrolled Medi-Cal Fee-for-Service Providers. Downloaded September 17, 2026.
+
+Files:
+- `cleaned_data.py`
+- `cleaned_data.ipynb`
+- `medical_cleaned_sample_50.csv`
+- `requirements.txt`
+
+Run: `python cleaned_data.py`
+
+Expected outputs:
+- `medical_cleaned.csv`
+- `medical_cleaned_sample_50.csv`
+
+Branch: `cleaning-angana`
+Branch URL: [add after push]
+Commit ID: [add after commit]
