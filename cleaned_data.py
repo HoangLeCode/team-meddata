@@ -5,7 +5,7 @@ import pandas as pd
 # 1. LOAD ORIGINAL DATA
 # ============================================================
 
-medical = pd.read_csv("medical.csv", low_memory=False)
+medical = pd.read_csv("../medical.csv", low_memory=False)
 
 starting_rows = len(medical)
 
@@ -73,7 +73,6 @@ print(
 
 # ------------------------------------------------------------
 # Save 5 ORIGINAL records BEFORE cleaning.
-# We need these later for Checklist #12.
 # ------------------------------------------------------------
 
 check_ids = [28449, 65686, 74431, 80478, 107422]
@@ -301,7 +300,7 @@ print(record_checks.to_string(index=False))
 # ============================================================
 
 medical.to_csv(
-    "medical_cleaned.csv",
+    "../medical_cleaned.csv",
     index=False
 )
 
