@@ -1,3 +1,30 @@
+# Module 6 Project Data Cleaning
+
+## Data Source
+This project uses the Medi-Cal provider dataset from our team project.
+The original dataset contains 374,831 rows and 46 columns.
+
+## Run Instructions
+Run `clean_provider_data_final.py` to clean the provider data.
+
+Run `analyze_provider_data.py` to check the cleaned data and confirm the cleaning results.
+
+## Expected Output
+The cleaning script creates `clean_provider_data.csv`.
+
+The cleaned dataset contains 374,831 rows and 46 columns. Invalid zero coordinates are changed to missing values (NaN). No rows are deleted.
+
+---
+
+# Module 3 Project Starter
+
+
+
+
+
+
+
+
 # Module 3 Project Starter
 
 Use this repository to investigate two candidate project Visions, combine the
