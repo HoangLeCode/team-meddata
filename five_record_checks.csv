@@ -1,0 +1,6 @@
+check,reason,original_value,expected_result,actual_result,matches_expected
+Repeated provider-location ID,Repeated IDs may contain different valid enrollment or specialty information,"{'Provider_Number': '1003000563', 'Owner_Number': 1, 'Service_Location_Number': 1}",Keep the record,Record kept,True
+Missing state,Missing state should remain missing instead of being invented,,Keep as missing,,True
+Out-of-state provider,Out-of-state providers may be valid and should not automatically be removed,NV,Keep the record,NV,True
+Earliest enrollment date,An old date is unusual but not automatically incorrect,1966-01-01 0:00:00,Keep valid historical date,1966-01-01 00:00:00,True
+Standard California record,A normal record should remain available after cleaning,90095.0,Five-character ZIP,90095,True

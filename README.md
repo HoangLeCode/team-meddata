@@ -70,3 +70,34 @@ The tutor generates difficult, one-at-a-time tracing questions covering the
 Module 1–3 Pandas vocabulary, including `.loc`, `.iloc`, filtering, sorting,
 cleaning, summaries, typed functions, and `.map()`. It deliberately excludes
 `groupby` and later-course shortcuts.
+
+
+## Data Cleaning
+
+The Medi-Cal provider dataset was cleaned on the `cleaning-eeshita` branch.
+
+The cleaning process:
+- Preserves the original data
+- Standardizes text, state names, county names, dates, IDs, and ZIP codes
+- Checks missing values, duplicates, coordinates, and unusual dates
+- Keeps repeated provider-location records when they may contain valid information
+- Verifies five individual records
+- Creates a reproducible 50-row sample
+
+### Files
+
+- `data_cleaning.ipynb` — cleaning and verification notebook
+- `clean_data.py` — Python version of the cleaning code
+- `cleaned_medi_cal_sample.csv` — 50-row cleaned sample
+- `five_record_checks.csv` — individual record checks
+- `cleaning_decision_log.csv` — cleaning decisions
+- `verification_summary.csv` — final verification numbers
+- `requirements.txt` — required Python package
+
+### Run
+
+Install the requirement:
+
+`pip install -r requirements.txt`
+
+Then run `data_cleaning.ipynb` from the beginning.

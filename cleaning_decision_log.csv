@@ -1,0 +1,11 @@
+cleaning_rule,reason,verification_check
+"Trim leading, trailing, and repeated spaces in text columns",Prevents one value from appearing as multiple categories because of spacing,Compared text before and after cleaning
+Convert blank strings to missing values,Blank strings and missing values should be represented consistently,Compared missing counts before and after cleaning
+Store provider identifiers as text,Identifiers are labels and should not be used in calculations,Checked identifier data types after conversion
+Store ZIP codes as five-character text,ZIP codes are identifiers and leading zeros are meaningful,Confirmed every nonmissing ZIP has five digits
+Convert enrollment dates to datetime,Allows dates to be checked and analyzed correctly,Confirmed zero failed date conversions
+Standardize state abbreviations to uppercase,Prevents values such as ca and CA from becoming separate categories,Reviewed state value counts
+Standardize county names to title case,Makes county categories consistent,Reviewed county values
+Keep repeated provider-location IDs,Repeated IDs may represent different specialties or enrollment records,"Found 71,084 repeated-ID rows and inspected examples"
+Keep missing values,Missing information should not be invented,Reported missing counts without dropping rows
+Keep valid out-of-state providers,The dataset legitimately contains enrolled providers outside California,Reviewed out-of-state records and kept them

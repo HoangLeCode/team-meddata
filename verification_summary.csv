@@ -1,0 +1,10 @@
+check,result
+Starting rows,372778
+Final rows,372778
+Rows removed,0
+Exact duplicates,0
+Rows with repeated provider-location IDs,71084
+Provider-location records,372778
+Unique providers,302802
+Records included in county analysis,370321
+Records excluded from county analysis because county is missing,2457
