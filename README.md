@@ -88,5 +88,5 @@ Expected outputs:
 - `medical_cleaned_sample_50.csv`
 
 Branch: `cleaning-angana`
-Branch URL: [add after push]
-Commit ID: e4a8b4a
+Branch URL: https://github.com/HoangLeCode/team-meddata/tree/cleaning-angana
+Submitted commit ID: `5cbb15f`
