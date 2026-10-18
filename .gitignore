@@ -1,11 +1,17 @@
-# Do not commit downloaded or private data. Remove a matching rule only when
+# Do not commit downloaded or private data (raw medical.csv stays ignored).
+# Exception: the team's canonical CLEANED output is a Phase 2 deliverable. Remove a matching rule only when
 # the professor explicitly says a specific instructor-provided sample belongs
 # in Git.
-data/
+/data/*
+!/data/clean/
+/data/clean/*
+!/data/clean/providers_clean.parquet
+!/data/clean/cleaning_audit.json
 downloads/
 *.csv
 *.tsv
 *.parquet
+!data/clean/providers_clean.parquet
 *.xlsx
 *.xls
 *.zip
@@ -17,3 +23,5 @@ downloads/
 # Local operating-system files.
 .DS_Store
 Thumbs.db
+__pycache__/
+.pytest_cache/
