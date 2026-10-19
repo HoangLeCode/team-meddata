@@ -186,6 +186,39 @@ The eligible-count data provides the base list of counties. A county with valid 
 
 The cleaning decisions in the code, cleaned team data, and this specification must agree.
 
+### Official DHCS Eligible Population Source
+
+The county-level Medi-Cal eligible population data comes from the California Department of Health Care Services (DHCS), *Medi-Cal Certified Eligibles Data by Month with Demographics*.
+
+**Dataset page:**
+
+https://data.ca.gov/@california-department-of-health-care-services/medi-cal-certified-eligibles-data-by-month-with-demographics
+
+**CSV download:**
+
+https://data.chhs.ca.gov/dataset/8c897320-ba87-4574-bc37-bae974191c35/resource/9ade93e4-0676-4117-adbe-a53378d7fe84/download/t6_eligibility_by_medicare_dual_status_201001_sept2026.csv
+
+**Resource:** By Medicare Dual Status, Certified Eligibles
+
+**Reporting month:** September 2026
+
+### Eligible Population Calculation
+
+For each California county, the September 2026 certified eligible counts are aggregated across the Medicare Dual and Non-Dual categories.
+
+The total eligible population is calculated as:
+
+`eligible_count = Dual certified eligibles + Non-Dual certified eligibles`
+
+The provider availability rate is then calculated as:
+
+`locations_per_10k = (provider_locations / eligible_count) * 10000`
+
+County names are standardized before joining the eligible population data with the cleaned provider dataset. According to the team's data preparation results, all 58 California county names match.
+
+Counties with missing or zero eligible counts must have an unavailable provider availability rate rather than a zero or infinite value.
+
+**Important data limitation:** The provider dataset snapshot date still needs to be confirmed. Until verified, the dashboard must clearly disclose that the provider and eligible population datasets may represent different reporting periods.
 ## 7. Required backend outputs
 
 The Phase 2 backend must return reusable values or DataFrames that provide:
@@ -286,3 +319,8 @@ Give a fresh coding agent the repository and this file with the following instru
 Record each question or guess.
 
 Update this specification, the cleaning documentation, or the repository instructions to resolve every important gap. Repeat the check until a fresh agent can understand the data definitions, calculations, expected outputs, and dashboard behavior without making a major unsupported assumption.
+
+## 13. Team Repository
+
+GitHub Repository:
+https://github.com/HoangLeCode/team-meddata
