@@ -8,7 +8,7 @@ Add your name and what you will audit. Choose a different scope from your teamma
 
 | Author | Feature | Number | Distinct scope or new evidence |
 | --- | --- | --- | --- |
-| | | | |
+|Eeshita Wade |County filter|Los Angeles provider locations per 10,000 eligibles| Tested All counties, Los Angeles, San Diego, All counties with All specialties; independently recalculated LA's rate from cleaned inputs|
 
 ## Requests
 
