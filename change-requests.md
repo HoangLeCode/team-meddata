@@ -9,7 +9,7 @@ Add your name and what you will audit. Choose a different scope from your teamma
 | Author | Feature | Number | Distinct scope or new evidence |
 | --- | --- | --- | --- |
 |Eeshita Wade |County filter|Los Angeles provider locations per 10,000 eligibles| Tested All counties, Los Angeles, San Diego, All counties with All specialties; independently recalculated LA's rate from cleaned inputs|
-
+| Ziheng Zhang | Priority County Table | Statewide Median | Verified the five lowest-ranked counties, checked the statewide median using provider_analysis.py, and exported the table as CSV. |
 ## Requests
 
 Copy this block for each actionable finding and choose a unique ID. Reference that ID in your individual audit. A check that finds no defect belongs in your audit; do not invent a bug to fill a request.
