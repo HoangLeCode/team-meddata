@@ -1,22 +1,32 @@
-# Module 9 — Audit metrics, code, and claims
+# Team change requests
 
-Open this folder in VS Code and run:
+Copy this template into the top folder of your team's app repository if `change-requests.md` is missing. If it already exists, add to it; do not replace your teammates' work. Keep your individual evidence and conclusions in `my-audit.md`.
 
-```text
-uv sync --frozen
-```
+## Claims
 
-Select the repository's `.venv` Python kernel.
+Add your name and what you will audit. Choose a different scope from your teammates, or explain the new evidence you will contribute.
 
-- `module09_in_class.ipynb` — class exercises; predict before running.
-- `module09_in_class_worked_examples.ipynb` — worked answers for review.
-- `my-audit.md` — individual audit template; submit your completed copy on Brightspace, not GitHub.
-- `change-requests.md` — shared homework template; copy it into your team's app repository to claim audit topics and record requested changes.
+| Author | Feature | Number | Distinct scope or new evidence |
+| --- | --- | --- | --- |
+| | | | |
 
-All example data is included.
+## Requests
 
-For extra quiz practice, tell Codex: **“Read tutor.md and give me one Module 9 practice question.”**
+Copy this block for each actionable finding and choose a unique ID. Reference that ID in your individual audit. A check that finds no defect belongs in your audit; do not invent a bug to fill a request.
 
-## Talk it through
+### AUDIT-XX Short description
 
-Open Codex in this folder and type `$talk-it-through` to clarify an idea or decision, one question at a time. The skill is included in `.agents/skills/talk-it-through/`.
+- Author:
+- Status: open
+- App version or commit checked:
+- Feature or number and its intended behavior or definition:
+- Inputs and steps to reproduce:
+- Expected result:
+- Actual result:
+- Evidence (including file, function, and relevant lines if code was checked):
+- Likely cause, if established, and remaining uncertainty:
+- Requested change:
+- Verification check and expected result:
+- Implementation commit and verification result, if resolved:
+
+Record findings without undoing a teammate's work. Mark a request resolved only after verifying the change.
