@@ -1,5 +1,24 @@
 # Module 3 Project Starter
 
+## Run the provider-availability dashboard
+
+This repository now includes the Phase 3 dashboard described in `BUILD_SPEC.md`.
+It uses the canonical provider Parquet and the checked county-level eligible
+population file; it does not contain hard-coded analytical values.
+
+```bash
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
+
+Open the local URL Streamlit prints in the terminal. The dashboard supports
+county and specialty selection, a county-rate map, summary metrics, a
+priority-county table, and a statewide-median comparison chart. If the
+canonical Parquet is not present, first run the established provider-cleaning
+pipeline to recreate `data/clean/providers_clean.parquet`.
+
+---
+
 Use this repository to investigate two candidate project Visions, combine the
 team's evidence, and record a provisional starting point. The files are
 scaffolds: replace the bracketed prompts with your team's own checked work.
