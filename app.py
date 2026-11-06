@@ -1,5 +1,6 @@
 """Medi-Cal FFS Provider Availability Planner."""
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -13,6 +14,7 @@ from provider_analysis import dashboard_outputs, load_eligible_data, load_provid
 ROOT = Path(__file__).parent
 PROVIDER_PATH = ROOT / "data" / "clean" / "providers_clean.parquet"
 ELIGIBLE_PATH = ROOT / "eligible_clean.csv"
+COUNTIES_GEOJSON_PATH = ROOT / "data" / "boundaries" / "ca_counties.geojson"
 
 NAVY = "#103B67"
 TEAL = "#168A8C"
@@ -35,25 +37,9 @@ def load_inputs():
 
 
 @st.cache_data(show_spinner=False)
-def county_centroids(providers: pd.DataFrame) -> pd.DataFrame:
-    points = providers.loc[
-        (providers["geo_status"] == "california")
-        & providers["Latitude"].notna()
-        & providers["Longitude"].notna(),
-        ["ca_county", "Latitude", "Longitude"],
-    ].copy()
-
-    return (
-        points.groupby("ca_county", as_index=False)[["Latitude", "Longitude"]]
-        .median()
-        .rename(
-            columns={
-                "ca_county": "CountyName",
-                "Latitude": "latitude",
-                "Longitude": "longitude",
-            }
-        )
-    )
+def load_county_geojson():
+    with COUNTIES_GEOJSON_PATH.open(encoding="utf-8") as boundary_file:
+        return json.load(boundary_file)
 
 
 def pct(value):
@@ -64,84 +50,120 @@ def rate(value):
     return "N/A" if value is None or pd.isna(value) else f"{value:.2f}"
 
 
-def make_rate_map(county_table, centroids, selected_county="All counties"):
-    mapped = county_table.merge(centroids, on="CountyName", how="left")
-    mapped = mapped.dropna(subset=["latitude", "longitude", "locations_per_10k"])
-
-    if mapped.empty:
-        return None
-
-    mapped["hover"] = mapped.apply(
-        lambda row: (
-            f"<b>{row['CountyName']}</b><br>"
-            f"Provider locations: {int(row['provider_locations']):,}<br>"
-            f"Medi-Cal eligibles: {int(row['eligible_count']):,}<br>"
-            f"Locations per 10k: {row['locations_per_10k']:.2f}<br>"
-            f"Below statewide median: {'Yes' if row['below_median'] else 'No'}"
-        ),
-        axis=1,
+def make_rate_map(county_table, county_geojson, selected_county="All counties"):
+    """Render county availability as a boundary choropleth, with NA areas neutral."""
+    county_ids = pd.DataFrame(
+        [
+            {
+                "CountyName": feature["properties"]["CENSUS_PLACE_NAME"].removesuffix(" County"),
+                "geoid": feature["properties"]["CENSUS_GEOID"],
+            }
+            for feature in county_geojson["features"]
+        ]
     )
+    mapped = county_ids.merge(county_table, on="CountyName", how="left", validate="one_to_one")
+    valid = mapped.dropna(subset=["locations_per_10k"]).copy()
+    unavailable = mapped[mapped["locations_per_10k"].isna()].copy()
 
-    figure = px.scatter_map(
-        mapped,
-        lat="latitude",
-        lon="longitude",
-        color="locations_per_10k",
-        size="provider_locations",
-        size_max=28,
-        color_continuous_scale="RdYlGn",
-        range_color=[
-            mapped["locations_per_10k"].min(),
-            mapped["locations_per_10k"].quantile(0.95),
-        ],
-        hover_name="CountyName",
-        hover_data={
-            "latitude": False,
-            "longitude": False,
-            "provider_locations": ":,",
-            "eligible_count": ":,",
-        },
-        zoom=4.65,
-        center={"lat": 37.15, "lon": -119.55},
-        height=455,
-    )
+    if valid.empty:
+        figure = go.Figure()
+    else:
+        value_max = float(valid["locations_per_10k"].quantile(0.95))
+        if value_max <= float(valid["locations_per_10k"].min()):
+            value_max = float(valid["locations_per_10k"].min()) + max(
+                abs(float(valid["locations_per_10k"].min())) * 0.01,
+                1.0,
+            )
+        figure = px.choropleth_map(
+            valid,
+            geojson=county_geojson,
+            locations="geoid",
+            featureidkey="properties.CENSUS_GEOID",
+            color="locations_per_10k",
+            color_continuous_scale="RdYlGn",
+            range_color=(float(valid["locations_per_10k"].min()), value_max),
+            map_style="white-bg",
+            center={"lat": 37.25, "lon": -119.5},
+            zoom=4.4,
+            opacity=0.88,
+            height=455,
+        )
+        hover_below = valid["below_median"].map({True: "Yes", False: "No"}).fillna("N/A")
+        figure.update_traces(
+            marker_line_color="white",
+            marker_line_width=0.8,
+            customdata=pd.DataFrame(
+                {
+                    "county": valid["CountyName"],
+                    "locations": valid["provider_locations"],
+                    "eligibles": valid["eligible_count"],
+                    "rate": valid["locations_per_10k"],
+                    "below": hover_below,
+                }
+            ).to_numpy(),
+            hovertemplate=(
+                "<b>%{customdata[0]}</b><br>"
+                "Provider locations: %{customdata[1]:,}<br>"
+                "Medi-Cal eligibles: %{customdata[2]:,}<br>"
+                "Locations per 10,000: %{customdata[3]:.2f}<br>"
+                "Below statewide median: %{customdata[4]}<extra></extra>"
+            ),
+        )
 
-    figure.update_traces(
-        hovertemplate="%{customdata[0]}<extra></extra>",
-        customdata=mapped[["hover"]],
-    )
-
-    figure.update_layout(
-        map_style="open-street-map",
-        margin=dict(l=0, r=0, t=0, b=0),
-        coloraxis_colorbar=dict(title="Locations<br>per 10k", thickness=14),
-    )
+    if not unavailable.empty:
+        eligible_display = unavailable["eligible_count"].map(
+            lambda value: "unavailable" if pd.isna(value) else f"{int(value):,}"
+        )
+        missing_customdata = pd.DataFrame(
+            {
+                "county": unavailable["CountyName"],
+                "locations": unavailable["provider_locations"].map(lambda value: f"{int(value):,}"),
+                "eligibles": eligible_display,
+            }
+        ).to_numpy()
+        figure.add_trace(
+            go.Choroplethmap(
+                geojson=county_geojson,
+                featureidkey="properties.CENSUS_GEOID",
+                locations=unavailable["geoid"],
+                z=[0] * len(unavailable),
+                colorscale=[[0, "#D8DEE6"], [1, "#D8DEE6"]],
+                showscale=False,
+                marker={"line": {"color": "white", "width": 0.8}},
+                customdata=missing_customdata,
+                hovertemplate=(
+                    "<b>%{customdata[0]}</b><br>"
+                    "Provider locations: %{customdata[1]}<br>"
+                    "Medi-Cal eligibles: %{customdata[2]}<br>"
+                    "Locations per 10,000: unavailable<extra></extra>"
+                ),
+                showlegend=False,
+            )
+        )
 
     if selected_county != "All counties":
-        focus = mapped[mapped["CountyName"] == selected_county]
-
-        if not focus.empty:
+        selected = mapped[mapped["CountyName"] == selected_county]
+        if not selected.empty:
             figure.add_trace(
-                go.Scattermap(
-                    lat=focus["latitude"],
-                    lon=focus["longitude"],
-                    mode="markers",
-                    marker={"size": 34, "color": "rgba(16, 59, 103, 0.22)"},
+                go.Choroplethmap(
+                    geojson=county_geojson,
+                    featureidkey="properties.CENSUS_GEOID",
+                    locations=selected["geoid"],
+                    z=[1],
+                    colorscale=[[0, "rgba(16, 59, 103, 0.12)"], [1, "rgba(16, 59, 103, 0.12)"]],
+                    showscale=False,
+                    marker={"line": {"color": NAVY, "width": 3}},
                     hoverinfo="skip",
                     showlegend=False,
                 )
             )
 
-            figure.update_layout(
-                map={
-                    "center": {
-                        "lat": float(focus.iloc[0]["latitude"]),
-                        "lon": float(focus.iloc[0]["longitude"]),
-                    },
-                    "zoom": 6.2,
-                }
-            )
-
+    figure.update_layout(
+        map={"center": {"lat": 37.25, "lon": -119.5}, "zoom": 4.4},
+        margin=dict(l=0, r=0, t=0, b=0),
+        coloraxis_colorbar=dict(title="Locations<br>per 10k", thickness=14),
+        paper_bgcolor="white",
+    )
     return figure
 
 
@@ -181,6 +203,14 @@ def make_comparison_chart(priority, median):
 
     figure.update_xaxes(gridcolor="#E8EDF2", zeroline=False)
     return figure
+
+
+def apply_priority_county_selection():
+    selection = st.session_state.get("priority_table")
+    rows = selection.selection.rows if selection is not None else []
+    county_names = st.session_state.get("priority_county_names", [])
+    if rows and rows[0] < len(county_names):
+        st.session_state["county_filter"] = county_names[rows[0]]
 
 
 st.markdown(
@@ -259,19 +289,32 @@ with st.sidebar:
 
     options = dashboard_outputs(providers, eligible)["filter_options"]
 
-    county = st.selectbox("County", options["counties"], index=0)
-    specialty = st.selectbox("Provider specialty", options["specialties"], index=0)
+    county = st.selectbox(
+        "County",
+        options["counties"],
+        index=0,
+        key="county_filter",
+        help="Choose one county to highlight it and show its current result. The statewide median stays fixed.",
+    )
+    specialty = st.selectbox(
+        "Provider specialty",
+        options["specialties"],
+        index=0,
+        help="Specialty results are exploratory because specialty values are incomplete.",
+    )
 
     st.selectbox(
         "Population segment",
         ["All Medi-Cal eligibles"],
         disabled=True,
+        help="Fixed to all Medi-Cal eligibles for this version of the dashboard.",
     )
 
     st.selectbox(
         "Reporting period",
         ["Latest available month"],
         disabled=True,
+        help="Fixed to the latest available month in the included eligible-count data.",
     )
 
     st.markdown(
@@ -290,6 +333,7 @@ outputs = dashboard_outputs(
 
 county_table = outputs["county_table"]
 priority = outputs["priority_counties"]
+st.session_state["priority_county_names"] = priority["CountyName"].tolist()
 quality = outputs["data_quality"]
 median = outputs["statewide_median"]
 
@@ -305,27 +349,34 @@ st.markdown(
 
 metric_columns = st.columns(4)
 
-metric_columns[0].metric(
-    "Statewide median locations per 10k eligibles",
-    rate(median),
-)
+metric_values = [
+    (
+        "Median rate / 10,000",
+        rate(median),
+        "Median valid county rate for the selected specialty: unique FFS provider locations per 10,000 Medi-Cal eligibles. County selection does not change this benchmark.",
+    ),
+    (
+        "Counties below median",
+        outputs["counties_below_median"],
+        "Number of counties with a valid rate below the statewide median for the selected specialty.",
+    ),
+    (
+        "County identified (%)",
+        pct(quality["county_identified_pct"]),
+        "Share of all provider records with a nonblank county value.",
+    ),
+    (
+        "Specialty missing (%)",
+        pct(quality["missing_specialty_pct"]),
+        "Share of all provider records with a blank specialty value.",
+    ),
+]
+for column, (label, value, help_text) in zip(metric_columns, metric_values):
+    with column:
+        with st.container(border=True):
+            st.metric(label, value, help=help_text)
 
-metric_columns[1].metric(
-    "Counties below statewide median",
-    outputs["counties_below_median"],
-)
-
-metric_columns[2].metric(
-    "Provider records with county identified",
-    pct(quality["county_identified_pct"]),
-)
-
-metric_columns[3].metric(
-    "Provider records missing specialty",
-    pct(quality["missing_specialty_pct"]),
-)
-
-left, right = st.columns([1.56, 1], gap="large")
+left, right = st.columns([1, 1.25], gap="large")
 
 with left:
     st.markdown(
@@ -339,15 +390,15 @@ with left:
     )
 
     st.markdown(
-        "<p class='section-copy'>Circle size represents recorded provider "
-        "locations. Hover over a county for its rate, eligible population, "
-        "and median comparison.</p>",
+        "<p class='section-copy'>County fill shows calculated provider locations per "
+        "10,000 eligibles. Hover for the county count, denominator, rate, and median "
+        "comparison. Gray counties have an unavailable rate.</p>",
         unsafe_allow_html=True,
     )
 
     chart = make_rate_map(
         county_table,
-        county_centroids(providers),
+        load_county_geojson(),
         county,
     )
 
@@ -379,20 +430,25 @@ with right:
 
         if not selected.empty:
             row = selected.iloc[0]
+            eligible_display = (
+                "unavailable" if pd.isna(row["eligible_count"]) else f"{int(row['eligible_count']):,}"
+            )
 
+            below = row["below_median"]
+            comparison = "unavailable" if pd.isna(below) else ("below" if below else "at or above")
             st.markdown(
                 f"<div class='notice'><b>Selected county: {county}</b><br>"
                 f"{int(row['provider_locations']):,} provider locations · "
-                f"{int(row['eligible_count']):,} Medi-Cal eligibles · "
-                f"<b>{rate(row['locations_per_10k'])}</b> locations per 10k"
+                f"{eligible_display} Medi-Cal eligibles · "
+                f"<b>{rate(row['locations_per_10k'])}</b> locations per 10,000 · "
+                f"{comparison} the statewide median"
                 "</div>",
                 unsafe_allow_html=True,
             )
 
     st.markdown(
         "<p class='section-copy'>Lowest valid provider-location rate first. "
-        "Selecting a county highlights it on the map and shows its details "
-        "above.</p>",
+        "Select a row to show that county's details and highlight it on the map.</p>",
         unsafe_allow_html=True,
     )
 
@@ -403,25 +459,51 @@ with right:
             "provider_locations",
             "eligible_count",
             "locations_per_10k",
+            "difference_from_median",
         ]
     ].copy()
 
     table.columns = [
         "Rank",
         "County",
-        "Provider locations",
-        "Medi-Cal eligibles",
-        "Locations per 10k",
+        "Locations",
+        "Eligibles",
+        "Rate / 10k",
+        "Δ median",
     ]
+    table["Locations"] = table["Locations"].map(lambda value: f"{int(value):,}")
+    table["Eligibles"] = table["Eligibles"].map(lambda value: f"{int(value):,}")
+    table["Rate / 10k"] = table["Rate / 10k"].map(lambda value: f"{value:.2f}")
+    table["Δ median"] = table["Δ median"].map(lambda value: f"{value:+.2f}")
+
+    st.caption("Lowest valid rate first. Rate is provider locations per 10,000 eligibles; Δ is county rate minus statewide median.")
 
     st.dataframe(
         table,
         hide_index=True,
         use_container_width=True,
+        key="priority_table",
+        on_select=apply_priority_county_selection,
+        selection_mode="single-row",
         column_config={
-            "Locations per 10k": st.column_config.NumberColumn(format="%.2f"),
-            "Provider locations": st.column_config.NumberColumn(format="%d"),
-            "Medi-Cal eligibles": st.column_config.NumberColumn(format="%d"),
+            "Rank": st.column_config.NumberColumn(width=44, format="%d"),
+            "County": st.column_config.TextColumn(width=130),
+            "Locations": st.column_config.TextColumn(
+                width=86,
+                help="Unique provider service locations for the county.",
+            ),
+            "Eligibles": st.column_config.TextColumn(
+                width=88,
+                help="All Medi-Cal eligible residents in the county.",
+            ),
+            "Rate / 10k": st.column_config.TextColumn(
+                width=82,
+                help="Provider locations per 10,000 eligible residents.",
+            ),
+            "Δ median": st.column_config.TextColumn(
+                width=84,
+                help="County rate minus the statewide median, in locations per 10,000 eligibles.",
+            ),
         },
     )
 
@@ -438,14 +520,28 @@ st.plotly_chart(
 
 st.markdown(
     """
+    <div class="notice">
+      <b>Data quality and interpretation:</b> Provider data covers enrolled
+      Medi-Cal Fee-for-Service listings only. Specialty values are incomplete,
+      so specialty views are exploratory. Low relative availability is a signal
+      for human follow-up, not a confirmed provider shortage. The denominator
+      includes all Medi-Cal eligibles; it does not describe the managed-care
+      network or appointment availability.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
     <div class="footer">
       <b>Scope:</b> Medi-Cal Fee-for-Service provider listings only. This
       indicator does not measure appointment availability, total provider
       capacity, travel time, language match, whether providers accept new
       patients, or Managed Care access.<br>
-      County rates use the latest available eligible-population month. Low
-      availability is an apparent gap for human follow-up, not a confirmed
-      provider shortage.
+      County rates use the latest available eligible-population month.
+      County outlines use the California Department of Technology's public
+      <a href="https://publish.data.ca.gov/dataset/california-county-boundaries-and-identifiers">county boundary dataset</a>.
     </div>
     """,
     unsafe_allow_html=True,

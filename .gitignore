@@ -4,6 +4,10 @@
 # in Git.
 /data/*
 !/data/clean/
+# Public geometry needed to render the county choropleth in deployment.
+!/data/boundaries/
+!/data/boundaries/ca_counties.geojson
+!/data/boundaries/README.md
 /data/clean/*
 !/data/clean/providers_clean.parquet
 !/data/clean/cleaning_audit.json
