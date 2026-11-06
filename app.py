@@ -82,7 +82,7 @@ def make_rate_map(county_table, centroids, selected_county="All counties"):
         axis=1,
     )
 
-    figure = px.scatter_mapbox(
+    figure = px.scatter_map(
         mapped,
         lat="latitude",
         lon="longitude",
@@ -112,7 +112,7 @@ def make_rate_map(county_table, centroids, selected_county="All counties"):
     )
 
     figure.update_layout(
-        mapbox_style="open-street-map",
+        map_style="open-street-map",
         margin=dict(l=0, r=0, t=0, b=0),
         coloraxis_colorbar=dict(title="Locations<br>per 10k", thickness=14),
     )
@@ -122,7 +122,7 @@ def make_rate_map(county_table, centroids, selected_county="All counties"):
 
         if not focus.empty:
             figure.add_trace(
-                go.Scattermapbox(
+                go.Scattermap(
                     lat=focus["latitude"],
                     lon=focus["longitude"],
                     mode="markers",
@@ -133,7 +133,7 @@ def make_rate_map(county_table, centroids, selected_county="All counties"):
             )
 
             figure.update_layout(
-                mapbox={
+                map={
                     "center": {
                         "lat": float(focus.iloc[0]["latitude"]),
                         "lon": float(focus.iloc[0]["longitude"]),
