@@ -278,271 +278,273 @@ st.markdown(
 
 try:
     providers, eligible = load_inputs()
-except Exception as error:
-    st.error("The dashboard could not load its data files.")
-    st.exception(error)
-    st.stop()
 
-with st.sidebar:
-    st.markdown("<div class='eyebrow'>1 · Filter results</div>", unsafe_allow_html=True)
-    st.markdown("### Explore access indicator")
+    with st.sidebar:
+        st.markdown("<div class='eyebrow'>1 · Filter results</div>", unsafe_allow_html=True)
+        st.markdown("### Explore access indicator")
 
-    options = dashboard_outputs(providers, eligible)["filter_options"]
+        options = dashboard_outputs(providers, eligible)["filter_options"]
 
-    county = st.selectbox(
-        "County",
-        options["counties"],
-        index=0,
-        key="county_filter",
-        help="Choose one county to highlight it and show its current result. The statewide median stays fixed.",
-    )
-    specialty = st.selectbox(
-        "Provider specialty",
-        options["specialties"],
-        index=0,
-        help="Specialty results are exploratory because specialty values are incomplete.",
-    )
-
-    st.selectbox(
-        "Population segment",
-        ["All Medi-Cal eligibles"],
-        disabled=True,
-        help="Fixed to all Medi-Cal eligibles for this version of the dashboard.",
-    )
-
-    st.selectbox(
-        "Reporting period",
-        ["Latest available month"],
-        disabled=True,
-        help="Fixed to the latest available month in the included eligible-count data.",
-    )
-
-    st.markdown(
-        "<div class='notice'><b>Specialty is exploratory.</b><br>"
-        "Specialty data are incomplete; use it to identify questions for "
-        "follow-up, not as a confirmed access measure.</div>",
-        unsafe_allow_html=True,
-    )
-
-outputs = dashboard_outputs(
-    providers,
-    eligible,
-    specialty=specialty,
-    county=county,
-)
-
-county_table = outputs["county_table"]
-priority = outputs["priority_counties"]
-st.session_state["priority_county_names"] = priority["CountyName"].tolist()
-quality = outputs["data_quality"]
-median = outputs["statewide_median"]
-
-st.markdown(
-    """
-    <div class="hero">
-      <h1>Medi-Cal FFS Provider Availability Planner</h1>
-      <p>Decision metric: unique FFS provider locations per 10,000 Medi-Cal eligibles</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-metric_columns = st.columns(4)
-
-metric_values = [
-    (
-        "Median rate / 10,000",
-        rate(median),
-        "Median valid county rate for the selected specialty: unique FFS provider locations per 10,000 Medi-Cal eligibles. County selection does not change this benchmark.",
-    ),
-    (
-        "Counties below median",
-        outputs["counties_below_median"],
-        "Number of counties with a valid rate below the statewide median for the selected specialty.",
-    ),
-    (
-        "County identified (%)",
-        pct(quality["county_identified_pct"]),
-        "Share of all provider records with a nonblank county value.",
-    ),
-    (
-        "Specialty missing (%)",
-        pct(quality["missing_specialty_pct"]),
-        "Share of all provider records with a blank specialty value.",
-    ),
-]
-for column, (label, value, help_text) in zip(metric_columns, metric_values):
-    with column:
-        with st.container(border=True):
-            st.metric(label, value, help=help_text)
-
-left, right = st.columns([1, 1.25], gap="large")
-
-with left:
-    st.markdown(
-        "<div class='eyebrow'>2 · Compare relative availability</div>",
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        "<div class='section-title'>Provider locations per 10k eligibles</div>",
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        "<p class='section-copy'>County fill shows calculated provider locations per "
-        "10,000 eligibles. Hover for the county count, denominator, rate, and median "
-        "comparison. Gray counties have an unavailable rate.</p>",
-        unsafe_allow_html=True,
-    )
-
-    chart = make_rate_map(
-        county_table,
-        load_county_geojson(),
-        county,
-    )
-
-    if chart is None:
-        st.info(
-            "No counties have both eligible counts and mappable provider "
-            "locations for this selection."
+        county = st.selectbox(
+            "County",
+            options["counties"],
+            index=0,
+            key="county_filter",
+            help="Choose one county to highlight it and show its current result. The statewide median stays fixed.",
         )
-    else:
-        st.plotly_chart(
-            chart,
-            width="stretch",
-            config={"displayModeBar": False},
+        specialty = st.selectbox(
+            "Provider specialty",
+            options["specialties"],
+            index=0,
+            help="Specialty results are exploratory because specialty values are incomplete.",
         )
 
-with right:
+        st.selectbox(
+            "Population segment",
+            ["All Medi-Cal eligibles"],
+            disabled=True,
+            help="Fixed to all Medi-Cal eligibles for this version of the dashboard.",
+        )
+
+        st.selectbox(
+            "Reporting period",
+            ["Latest available month"],
+            disabled=True,
+            help="Fixed to the latest available month in the included eligible-count data.",
+        )
+
+        st.markdown(
+            "<div class='notice'><b>Specialty is exploratory.</b><br>"
+            "Specialty data are incomplete; use it to identify questions for "
+            "follow-up, not as a confirmed access measure.</div>",
+            unsafe_allow_html=True,
+        )
+
+    outputs = dashboard_outputs(
+        providers,
+        eligible,
+        specialty=specialty,
+        county=county,
+    )
+
+    county_table = outputs["county_table"]
+    priority = outputs["priority_counties"]
+    st.session_state["priority_county_names"] = priority["CountyName"].tolist()
+    quality = outputs["data_quality"]
+    median = outputs["statewide_median"]
+
     st.markdown(
-        "<div class='eyebrow'>3 · Identify counties for follow-up</div>",
+        """
+        <div class="hero">
+          <h1>Medi-Cal FFS Provider Availability Planner</h1>
+          <p>Decision metric: unique FFS provider locations per 10,000 Medi-Cal eligibles</p>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        "<div class='section-title'>Priority counties for follow-up</div>",
-        unsafe_allow_html=True,
-    )
+    metric_columns = st.columns(4)
 
-    if county != "All counties":
-        selected = outputs["selected_county"]
-
-        if not selected.empty:
-            row = selected.iloc[0]
-            eligible_display = (
-                "unavailable" if pd.isna(row["eligible_count"]) else f"{int(row['eligible_count']):,}"
-            )
-
-            below = row["below_median"]
-            comparison = "unavailable" if pd.isna(below) else ("below" if below else "at or above")
-            st.markdown(
-                f"<div class='notice'><b>Selected county: {county}</b><br>"
-                f"{int(row['provider_locations']):,} provider locations · "
-                f"{eligible_display} Medi-Cal eligibles · "
-                f"<b>{rate(row['locations_per_10k'])}</b> locations per 10,000 · "
-                f"{comparison} the statewide median"
-                "</div>",
-                unsafe_allow_html=True,
-            )
-
-    st.markdown(
-        "<p class='section-copy'>Lowest valid provider-location rate first. "
-        "Select a row to show that county's details and highlight it on the map.</p>",
-        unsafe_allow_html=True,
-    )
-
-    table = priority[
-        [
-            "rank",
-            "CountyName",
-            "provider_locations",
-            "eligible_count",
-            "locations_per_10k",
-            "difference_from_median",
-        ]
-    ].copy()
-
-    table.columns = [
-        "Rank",
-        "County",
-        "Locations",
-        "Eligibles",
-        "Rate / 10k",
-        "Δ median",
+    metric_values = [
+        (
+            "Median rate / 10,000",
+            rate(median),
+            "Median valid county rate for the selected specialty: unique FFS provider locations per 10,000 Medi-Cal eligibles. County selection does not change this benchmark.",
+        ),
+        (
+            "Counties below median",
+            outputs["counties_below_median"],
+            "Number of counties with a valid rate below the statewide median for the selected specialty.",
+        ),
+        (
+            "County identified (%)",
+            pct(quality["county_identified_pct"]),
+            "Share of all provider records with a nonblank county value.",
+        ),
+        (
+            "Specialty missing (%)",
+            pct(quality["missing_specialty_pct"]),
+            "Share of all provider records with a blank specialty value.",
+        ),
     ]
-    table["Locations"] = table["Locations"].map(lambda value: f"{int(value):,}")
-    table["Eligibles"] = table["Eligibles"].map(lambda value: f"{int(value):,}")
-    table["Rate / 10k"] = table["Rate / 10k"].map(lambda value: f"{value:.2f}")
-    table["Δ median"] = table["Δ median"].map(lambda value: f"{value:+.2f}")
+    for column, (label, value, help_text) in zip(metric_columns, metric_values):
+        with column:
+            with st.container(border=True):
+                st.metric(label, value, help=help_text)
 
-    st.caption("Lowest valid rate first. Rate is provider locations per 10,000 eligibles; Δ is county rate minus statewide median.")
+    left, right = st.columns([1, 1.25], gap="large")
 
-    st.dataframe(
-        table,
-        hide_index=True,
-        width="stretch",
-        key="priority_table",
-        on_select=apply_priority_county_selection,
-        selection_mode="single-row",
-        column_config={
-            "Rank": st.column_config.NumberColumn(width=44, format="%d"),
-            "County": st.column_config.TextColumn(width=130),
-            "Locations": st.column_config.TextColumn(
-                width=86,
-                help="Unique provider service locations for the county.",
-            ),
-            "Eligibles": st.column_config.TextColumn(
-                width=88,
-                help="All Medi-Cal eligible residents in the county.",
-            ),
-            "Rate / 10k": st.column_config.TextColumn(
-                width=82,
-                help="Provider locations per 10,000 eligible residents.",
-            ),
-            "Δ median": st.column_config.TextColumn(
-                width=84,
-                help="County rate minus the statewide median, in locations per 10,000 eligibles.",
-            ),
-        },
+    with left:
+        st.markdown(
+            "<div class='eyebrow'>2 · Compare relative availability</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "<div class='section-title'>Provider locations per 10k eligibles</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "<p class='section-copy'>County fill shows calculated provider locations per "
+            "10,000 eligibles. Hover for the county count, denominator, rate, and median "
+            "comparison. Gray counties have an unavailable rate.</p>",
+            unsafe_allow_html=True,
+        )
+
+        chart = make_rate_map(
+            county_table,
+            load_county_geojson(),
+            county,
+        )
+
+        if chart is None:
+            st.info(
+                "No counties have both eligible counts and mappable provider "
+                "locations for this selection."
+            )
+        else:
+            st.plotly_chart(
+                chart,
+                width="stretch",
+                config={"displayModeBar": False},
+            )
+
+    with right:
+        st.markdown(
+            "<div class='eyebrow'>3 · Identify counties for follow-up</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "<div class='section-title'>Priority counties for follow-up</div>",
+            unsafe_allow_html=True,
+        )
+
+        if county != "All counties":
+            selected = outputs["selected_county"]
+
+            if not selected.empty:
+                row = selected.iloc[0]
+                eligible_display = (
+                    "unavailable" if pd.isna(row["eligible_count"]) else f"{int(row['eligible_count']):,}"
+                )
+
+                below = row["below_median"]
+                comparison = "unavailable" if pd.isna(below) else ("below" if below else "at or above")
+                st.markdown(
+                    f"<div class='notice'><b>Selected county: {county}</b><br>"
+                    f"{int(row['provider_locations']):,} provider locations · "
+                    f"{eligible_display} Medi-Cal eligibles · "
+                    f"<b>{rate(row['locations_per_10k'])}</b> locations per 10,000 · "
+                    f"{comparison} the statewide median"
+                    "</div>",
+                    unsafe_allow_html=True,
+                )
+
+        st.markdown(
+            "<p class='section-copy'>Lowest valid provider-location rate first. "
+            "Select a row to show that county's details and highlight it on the map.</p>",
+            unsafe_allow_html=True,
+        )
+
+        table = priority[
+            [
+                "rank",
+                "CountyName",
+                "provider_locations",
+                "eligible_count",
+                "locations_per_10k",
+                "difference_from_median",
+            ]
+        ].copy()
+
+        table.columns = [
+            "Rank",
+            "County",
+            "Locations",
+            "Eligibles",
+            "Rate / 10k",
+            "Δ median",
+        ]
+        table["Locations"] = table["Locations"].map(lambda value: f"{int(value):,}")
+        table["Eligibles"] = table["Eligibles"].map(lambda value: f"{int(value):,}")
+        table["Rate / 10k"] = table["Rate / 10k"].map(lambda value: f"{value:.2f}")
+        table["Δ median"] = table["Δ median"].map(lambda value: f"{value:+.2f}")
+
+        st.caption("Lowest valid rate first. Rate is provider locations per 10,000 eligibles; Δ is county rate minus statewide median.")
+
+        st.dataframe(
+            table,
+            hide_index=True,
+            width="stretch",
+            key="priority_table",
+            on_select=apply_priority_county_selection,
+            selection_mode="single-row",
+            column_config={
+                "Rank": st.column_config.NumberColumn(width=44, format="%d"),
+                "County": st.column_config.TextColumn(width=130),
+                "Locations": st.column_config.TextColumn(
+                    width=86,
+                    help="Unique provider service locations for the county.",
+                ),
+                "Eligibles": st.column_config.TextColumn(
+                    width=88,
+                    help="All Medi-Cal eligible residents in the county.",
+                ),
+                "Rate / 10k": st.column_config.TextColumn(
+                    width=82,
+                    help="Provider locations per 10,000 eligible residents.",
+                ),
+                "Δ median": st.column_config.TextColumn(
+                    width=84,
+                    help="County rate minus the statewide median, in locations per 10,000 eligibles.",
+                ),
+            },
+        )
+
+    st.markdown(
+        "<div class='section-title'>Compare counties to statewide median</div>",
+        unsafe_allow_html=True,
     )
 
-st.markdown(
-    "<div class='section-title'>Compare counties to statewide median</div>",
-    unsafe_allow_html=True,
-)
+    st.plotly_chart(
+        make_comparison_chart(priority, median),
+        width="stretch",
+        config={"displayModeBar": False},
+    )
 
-st.plotly_chart(
-    make_comparison_chart(priority, median),
-    width="stretch",
-    config={"displayModeBar": False},
-)
+    st.markdown(
+        """
+        <div class="notice">
+          <b>Data quality and interpretation:</b> Provider data covers enrolled
+          Medi-Cal Fee-for-Service listings only. Specialty values are incomplete,
+          so specialty views are exploratory. Low relative availability is a signal
+          for human follow-up, not a confirmed provider shortage. The denominator
+          includes all Medi-Cal eligibles; it does not describe the managed-care
+          network or appointment availability.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-st.markdown(
-    """
-    <div class="notice">
-      <b>Data quality and interpretation:</b> Provider data covers enrolled
-      Medi-Cal Fee-for-Service listings only. Specialty values are incomplete,
-      so specialty views are exploratory. Low relative availability is a signal
-      for human follow-up, not a confirmed provider shortage. The denominator
-      includes all Medi-Cal eligibles; it does not describe the managed-care
-      network or appointment availability.
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+    st.markdown(
+        """
+        <div class="footer">
+          <b>Scope:</b> Medi-Cal Fee-for-Service provider listings only. This
+          indicator does not measure appointment availability, total provider
+          capacity, travel time, language match, whether providers accept new
+          patients, or Managed Care access.<br>
+          County rates use the latest available eligible-population month.
+          County outlines use the California Department of Technology's public
+          <a href="https://publish.data.ca.gov/dataset/california-county-boundaries-and-identifiers">county boundary dataset</a>.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-st.markdown(
-    """
-    <div class="footer">
-      <b>Scope:</b> Medi-Cal Fee-for-Service provider listings only. This
-      indicator does not measure appointment availability, total provider
-      capacity, travel time, language match, whether providers accept new
-      patients, or Managed Care access.<br>
-      County rates use the latest available eligible-population month.
-      County outlines use the California Department of Technology's public
-      <a href="https://publish.data.ca.gov/dataset/california-county-boundaries-and-identifiers">county boundary dataset</a>.
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+except Exception as e:
+    st.error("⚠️ App crashed during startup:")
+    st.exception(e)
+    import traceback
+    st.code(traceback.format_exc())
