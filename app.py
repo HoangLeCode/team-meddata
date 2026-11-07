@@ -152,9 +152,9 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
             range_color=(float(valid["locations_per_10k"].min()), value_max),
             map_style="white-bg",
             center={"lat": 37.25, "lon": -119.5},
-            zoom=4.4,
+            zoom=4.9,
             opacity=0.88,
-            height=455,
+            height=520,
         )
         hover_below = valid["below_median"].map({True: "Yes", False: "No"}).fillna("N/A")
         figure.update_traces(
@@ -227,7 +227,9 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
             )
 
     figure.update_layout(
-        map={"center": {"lat": 37.25, "lon": -119.5}, "zoom": 4.4},
+        map={"center": {"lat": 37.25, "lon": -119.5}, "zoom": 4.9},
+        dragmode="pan",  # click-and-drag moves the map
+        uirevision="county-map",  # keep the user's pan/zoom when filters change
         margin=dict(l=0, r=0, t=0, b=0),
         coloraxis_colorbar=dict(
             title=dict(text="Locations<br>per 10k", font=dict(color="#1D2B3A")),
@@ -296,8 +298,8 @@ def make_comparison_chart(county_table, median, priority_names=(), selected_coun
             x=median,
             line_dash="dash",
             line_color=NAVY,
-            line_width=1.5,
-            layer="below",
+            line_width=2,
+            layer="above",  # stays visible across the bars
         )
         figure.add_annotation(
             x=median,
@@ -549,7 +551,7 @@ try:
             st.plotly_chart(
                 chart,
                 width="stretch",
-                config={"displayModeBar": False},
+                config={"displayModeBar": False, "scrollZoom": True},
             )
 
     with right:
