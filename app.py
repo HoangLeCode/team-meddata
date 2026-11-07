@@ -40,10 +40,61 @@ def load_inputs():
     return providers, eligible
 
 
+def _slim_coords(coords, digits=4):
+    """Round lon/lat to ~11 m and drop repeated points. The full-precision
+    boundary file is far more detail than a statewide map can show."""
+    if isinstance(coords[0], (int, float)):
+        return [round(value, digits) for value in coords]
+    slimmed = [_slim_coords(part, digits) for part in coords]
+    if isinstance(slimmed[0][0], (int, float)):  # a ring/line of positions
+        deduped = [slimmed[0]]
+        for point in slimmed[1:]:
+            if point != deduped[-1]:
+                deduped.append(point)
+        if len(deduped) >= 4:
+            if deduped[-1] != deduped[0]:
+                deduped.append(deduped[0])
+            return deduped
+    return slimmed
+
+
 @st.cache_resource(show_spinner=False)
 def load_county_geojson():
     with COUNTIES_GEOJSON_PATH.open(encoding="utf-8") as boundary_file:
-        return json.load(boundary_file)
+        raw = json.load(boundary_file)
+    # Keep only the two properties the app uses, and lighter geometry.
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "CENSUS_PLACE_NAME": feature["properties"]["CENSUS_PLACE_NAME"],
+                    "CENSUS_GEOID": feature["properties"]["CENSUS_GEOID"],
+                },
+                "geometry": {
+                    "type": feature["geometry"]["type"],
+                    "coordinates": _slim_coords(feature["geometry"]["coordinates"]),
+                },
+            }
+            for feature in raw["features"]
+            if feature.get("geometry")
+        ],
+    }
+
+
+def geojson_subset(county_geojson, geoids):
+    """Only the features a trace actually draws, so each map layer doesn't
+    re-embed the whole state's boundaries."""
+    wanted = set(geoids)
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            feature
+            for feature in county_geojson["features"]
+            if feature["properties"]["CENSUS_GEOID"] in wanted
+        ],
+    }
 
 
 @st.cache_data(show_spinner=False)
@@ -93,7 +144,7 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
             )
         figure = px.choropleth_map(
             valid,
-            geojson=county_geojson,
+            geojson=geojson_subset(county_geojson, valid["geoid"]),
             locations="geoid",
             featureidkey="properties.CENSUS_GEOID",
             color="locations_per_10k",
@@ -140,7 +191,7 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
         ).to_numpy()
         figure.add_trace(
             go.Choroplethmap(
-                geojson=county_geojson,
+                geojson=geojson_subset(county_geojson, unavailable["geoid"]),
                 featureidkey="properties.CENSUS_GEOID",
                 locations=unavailable["geoid"],
                 z=[0] * len(unavailable),
@@ -163,7 +214,7 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
         if not selected.empty:
             figure.add_trace(
                 go.Choroplethmap(
-                    geojson=county_geojson,
+                    geojson=geojson_subset(county_geojson, selected["geoid"]),
                     featureidkey="properties.CENSUS_GEOID",
                     locations=selected["geoid"],
                     z=[1],
