@@ -217,10 +217,29 @@ st.markdown(
     f"""
     <style>
       .stApp {{ background: #F5F7FA; color: #1D2B3A; }}
+      
+      /* Force readable text colors across widgets and labels */
+      label, .stSelectbox label, [data-testid="stWidgetLabel"] p, .stMarkdown p {{
+        color: #1D2B3A !important;
+      }}
+      
       [data-testid="stSidebar"] {{
         background: #FFFFFF;
         border-right: 1px solid #DCE3EA;
       }}
+      
+      [data-testid="stSidebar"] label, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
+        color: #1D2B3A !important;
+      }}
+
+      [data-testid="stMetricLabel"] {{
+        color: #556070 !important;
+      }}
+
+      [data-testid="stMetricValue"] {{
+        color: {NAVY} !important;
+      }}
+
       .hero {{
         background: linear-gradient(100deg, {NAVY}, #15517F);
         border-radius: 12px;
@@ -232,11 +251,11 @@ st.markdown(
         font-size: 2rem;
         line-height: 1.15;
         margin: 0;
-        color: white;
+        color: white !important;
       }}
       .hero p {{
         margin: .3rem 0 0;
-        color: #D8E7F3;
+        color: #D8E7F3 !important;
         font-size: 1.03rem;
       }}
       .eyebrow {{
