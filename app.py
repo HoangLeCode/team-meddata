@@ -270,6 +270,8 @@ def make_comparison_chart(county_table, median, priority_names=(), selected_coun
             marker_color=colors,
             text=labels,
             textposition="outside",
+            textfont=dict(size=12, color="#1D2B3A"),
+            constraintext="none",
             cliponaxis=False,
             customdata=pd.DataFrame(
                 {
@@ -289,17 +291,29 @@ def make_comparison_chart(county_table, median, priority_names=(), selected_coun
     )
 
     if median is not None:
+        # Draw the median line behind the bars, with its label above the plot area.
         figure.add_vline(
             x=median,
             line_dash="dash",
             line_color=NAVY,
-            annotation_text=f"Statewide median ({median:.2f})",
-            annotation_position="top right",
+            line_width=1.5,
+            layer="below",
+        )
+        figure.add_annotation(
+            x=median,
+            y=1,
+            xref="x",
+            yref="paper",
+            yanchor="bottom",
+            text=f"<b>Statewide median: {median:.2f}</b>",
+            showarrow=False,
+            font=dict(color=NAVY, size=12),
+            bgcolor="white",
         )
 
     figure.update_layout(
-        height=max(320, 16 * len(chart) + 90),
-        margin=dict(l=0, r=40, t=38, b=5),
+        height=max(320, 18 * len(chart) + 110),
+        margin=dict(l=0, r=50, t=40, b=50),
         xaxis_title="Provider locations per 10,000 Medi-Cal eligibles",
         yaxis_title=None,
         plot_bgcolor="white",
