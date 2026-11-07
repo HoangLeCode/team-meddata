@@ -162,9 +162,9 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
         map={"center": {"lat": 37.25, "lon": -119.5}, "zoom": 4.4},
         margin=dict(l=0, r=0, t=0, b=0),
         coloraxis_colorbar=dict(
-            title="Locations<br>per 10k", 
-            thickness=14, 
-            tickfont=dict(color="#1D2B3A")  # <-- Removed invalid titlefont
+            title=dict(text="Locations<br>per 10k", font=dict(color="#1D2B3A")),
+            thickness=14,
+            tickfont=dict(color="#1D2B3A"),
         ),
         paper_bgcolor="white",
         font=dict(color="#1D2B3A"),
@@ -207,7 +207,12 @@ def make_comparison_chart(priority, median):
         font=dict(color="#1D2B3A"),
     )
 
-    figure.update_xaxes(gridcolor="#E8EDF2", zeroline=False, tickfont=dict(color="#1D2B3A"), titlefont=dict(color="#1D2B3A"))
+    figure.update_xaxes(
+        gridcolor="#E8EDF2",
+        zeroline=False,
+        tickfont=dict(color="#1D2B3A"),
+        title_font=dict(color="#1D2B3A"),  # Plotly 6 removed `titlefont`; use title_font
+    )
     figure.update_yaxes(tickfont=dict(color="#1D2B3A"))
     return figure
 
