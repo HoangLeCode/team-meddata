@@ -240,18 +240,51 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
     return figure
 
 
-def make_comparison_chart(priority, median):
-    chart = priority.sort_values("locations_per_10k", ascending=True)
+def make_comparison_chart(county_table, median, priority_names=(), selected_county="All counties"):
+    """Every county with a valid rate, ranked, against the statewide median.
+    Gold = below median, teal = at or above; the follow-up counties are labeled
+    and the selected county is drawn in navy."""
+    chart = county_table.dropna(subset=["locations_per_10k"]).sort_values(
+        "locations_per_10k", ascending=True
+    )
+    if chart.empty:
+        return None
+
+    priority_names = set(priority_names)
+    below = chart["below_median"].fillna(False).astype(bool)
+    colors = [
+        NAVY if name == selected_county else (GOLD if is_below else TEAL)
+        for name, is_below in zip(chart["CountyName"], below)
+    ]
+    labels = [
+        f"{value:.1f}" if (name in priority_names or name == selected_county) else ""
+        for name, value in zip(chart["CountyName"], chart["locations_per_10k"])
+    ]
+    delta = chart["locations_per_10k"] - median if median is not None else chart["locations_per_10k"] * float("nan")
 
     figure = go.Figure(
         go.Bar(
             x=chart["locations_per_10k"],
             y=chart["CountyName"],
             orientation="h",
-            marker_color=TEAL,
-            text=chart["locations_per_10k"].map(lambda value: f"{value:.2f}"),
+            marker_color=colors,
+            text=labels,
             textposition="outside",
-            hovertemplate="<b>%{y}</b><br>Locations per 10k: %{x:.2f}<extra></extra>",
+            cliponaxis=False,
+            customdata=pd.DataFrame(
+                {
+                    "locations": chart["provider_locations"],
+                    "eligibles": chart["eligible_count"],
+                    "delta": delta,
+                }
+            ).to_numpy(),
+            hovertemplate=(
+                "<b>%{y}</b><br>"
+                "Locations per 10k: %{x:.2f}<br>"
+                "Δ vs median: %{customdata[2]:+.2f}<br>"
+                "Provider locations: %{customdata[0]:,}<br>"
+                "Medi-Cal eligibles: %{customdata[1]:,}<extra></extra>"
+            ),
         )
     )
 
@@ -265,13 +298,14 @@ def make_comparison_chart(priority, median):
         )
 
     figure.update_layout(
-        height=315,
+        height=max(320, 16 * len(chart) + 90),
         margin=dict(l=0, r=40, t=38, b=5),
         xaxis_title="Provider locations per 10,000 Medi-Cal eligibles",
         yaxis_title=None,
         plot_bgcolor="white",
         paper_bgcolor="white",
         showlegend=False,
+        bargap=0.25,
         font=dict(color="#1D2B3A"),
     )
 
@@ -279,9 +313,9 @@ def make_comparison_chart(priority, median):
         gridcolor="#E8EDF2",
         zeroline=False,
         tickfont=dict(color="#1D2B3A"),
-        title_font=dict(color="#1D2B3A"),  # Plotly 6 removed `titlefont`; use title_font
+        title_font=dict(color="#1D2B3A"),
     )
-    figure.update_yaxes(tickfont=dict(color="#1D2B3A"))
+    figure.update_yaxes(tickfont=dict(color="#1D2B3A", size=11), automargin=True)
     return figure
 
 
@@ -598,15 +632,32 @@ try:
         )
 
     st.markdown(
-        "<div class='section-title'>Compare counties to statewide median</div>",
+        "<div class='section-title'>Where every county sits against the statewide median</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<p class='section-copy'>All counties with a valid rate, lowest at the bottom. "
+        "<b style='color:#C98516'>Gold</b> = below the median, "
+        "<b style='color:#168A8C'>teal</b> = at or above, "
+        "<b style='color:#103B67'>navy</b> = selected county. "
+        "The priority counties and your selection are labeled; hover any bar for details.</p>",
         unsafe_allow_html=True,
     )
 
-    st.plotly_chart(
-        make_comparison_chart(priority, median),
-        width="stretch",
-        config={"displayModeBar": False},
+    comparison = make_comparison_chart(
+        county_table,
+        median,
+        priority_names=priority["CountyName"].tolist(),
+        selected_county=county,
     )
+    if comparison is None:
+        st.info("No counties have a valid rate for this selection.")
+    else:
+        st.plotly_chart(
+            comparison,
+            width="stretch",
+            config={"displayModeBar": False},
+        )
 
     st.markdown(
         """
