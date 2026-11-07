@@ -161,8 +161,9 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
     figure.update_layout(
         map={"center": {"lat": 37.25, "lon": -119.5}, "zoom": 4.4},
         margin=dict(l=0, r=0, t=0, b=0),
-        coloraxis_colorbar=dict(title="Locations<br>per 10k", thickness=14),
+        coloraxis_colorbar=dict(title="Locations<br>per 10k", thickness=14, titlefont=dict(color="#1D2B3A"), tickfont=dict(color="#1D2B3A")),
         paper_bgcolor="white",
+        font=dict(color="#1D2B3A"),  # <-- Forces dark text on hover/labels
     )
     return figure
 
@@ -199,9 +200,11 @@ def make_comparison_chart(priority, median):
         plot_bgcolor="white",
         paper_bgcolor="white",
         showlegend=False,
+        font=dict(color="#1D2B3A"),
     )
 
-    figure.update_xaxes(gridcolor="#E8EDF2", zeroline=False)
+    figure.update_xaxes(gridcolor="#E8EDF2", zeroline=False, tickfont=dict(color="#1D2B3A"), titlefont=dict(color="#1D2B3A"))
+    figure.update_yaxes(tickfont=dict(color="#1D2B3A"))
     return figure
 
 
