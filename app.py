@@ -161,9 +161,13 @@ def make_rate_map(county_table, county_geojson, selected_county="All counties"):
     figure.update_layout(
         map={"center": {"lat": 37.25, "lon": -119.5}, "zoom": 4.4},
         margin=dict(l=0, r=0, t=0, b=0),
-        coloraxis_colorbar=dict(title="Locations<br>per 10k", thickness=14, titlefont=dict(color="#1D2B3A"), tickfont=dict(color="#1D2B3A")),
+        coloraxis_colorbar=dict(
+            title="Locations<br>per 10k", 
+            thickness=14, 
+            tickfont=dict(color="#1D2B3A")  # <-- Removed invalid titlefont
+        ),
         paper_bgcolor="white",
-        font=dict(color="#1D2B3A"),  # <-- Forces dark text on hover/labels
+        font=dict(color="#1D2B3A"),
     )
     return figure
 
