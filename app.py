@@ -410,7 +410,7 @@ with left:
     else:
         st.plotly_chart(
             chart,
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
 
@@ -481,7 +481,7 @@ with right:
     st.dataframe(
         table,
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
         key="priority_table",
         on_select=apply_priority_county_selection,
         selection_mode="single-row",
@@ -514,7 +514,7 @@ st.markdown(
 
 st.plotly_chart(
     make_comparison_chart(priority, median),
-    use_container_width=True,
+    width="stretch",
     config={"displayModeBar": False},
 )
 
