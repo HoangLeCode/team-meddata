@@ -29,17 +29,34 @@ st.set_page_config(
 )
 
 
-@st.cache_data(show_spinner="Loading cleaned provider and eligible data...")
+# cache_resource keeps ONE shared copy in memory. cache_data would hand every
+# rerun (every widget click) a fresh deep copy of the full provider table,
+# which steadily eats the Community Cloud memory limit until the app is killed.
+# Treat these objects as read-only.
+@st.cache_resource(show_spinner="Loading cleaned provider and eligible data...")
 def load_inputs():
     providers = load_provider_data(PROVIDER_PATH)
     eligible = load_eligible_data(ELIGIBLE_PATH)
     return providers, eligible
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def load_county_geojson():
     with COUNTIES_GEOJSON_PATH.open(encoding="utf-8") as boundary_file:
         return json.load(boundary_file)
+
+
+@st.cache_data(show_spinner=False)
+def get_filter_options():
+    providers, eligible = load_inputs()
+    return dashboard_outputs(providers, eligible)["filter_options"]
+
+
+# Small results, keyed only by the two filter values; capped so the cache can't grow unbounded.
+@st.cache_data(show_spinner="Updating results...", max_entries=64)
+def get_outputs(specialty, county):
+    providers, eligible = load_inputs()
+    return dashboard_outputs(providers, eligible, specialty=specialty, county=county)
 
 
 def pct(value):
@@ -308,13 +325,13 @@ st.markdown(
 )
 
 try:
-    providers, eligible = load_inputs()
+    load_inputs()  # warm the shared cache (shows the loading spinner on first visit)
 
     with st.sidebar:
         st.markdown("<div class='eyebrow'>1 · Filter results</div>", unsafe_allow_html=True)
         st.markdown("### Explore access indicator")
 
-        options = dashboard_outputs(providers, eligible)["filter_options"]
+        options = get_filter_options()
 
         county = st.selectbox(
             "County",
@@ -351,12 +368,7 @@ try:
             unsafe_allow_html=True,
         )
 
-    outputs = dashboard_outputs(
-        providers,
-        eligible,
-        specialty=specialty,
-        county=county,
-    )
+    outputs = get_outputs(specialty, county)
 
     county_table = outputs["county_table"]
     priority = outputs["priority_counties"]
