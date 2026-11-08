@@ -1,9 +1,26 @@
 """Medi-Cal FFS Provider Availability Planner."""
 
-import json
-from pathlib import Path
+import faulthandler
+import os
 
-import pandas as pd
+# If the process hard-crashes (segfault), print the Python stack to the
+# Streamlit Cloud log instead of dying silently.
+faulthandler.enable()
+
+# Work around the pyarrow/mimalloc crash (apache/arrow#50471): use the plain
+# system allocator instead of pyarrow's bundled mimalloc.
+os.environ.setdefault("ARROW_DEFAULT_MEMORY_POOL", "system")
+import pyarrow as pa  # noqa: E402
+
+try:
+    pa.set_memory_pool(pa.system_memory_pool())
+except Exception:
+    pass
+
+import json  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+import pandas as pd  # noqa: E402
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
@@ -702,6 +719,10 @@ try:
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    st.caption(
+        f"Running Streamlit {st.__version__} · pyarrow {pa.__version__} · pandas {pd.__version__}"
     )
 
 except Exception as e:
