@@ -25,7 +25,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from provider_analysis import dashboard_outputs, load_eligible_data, load_provider_data
+from provider_analysis import (
+    county_analysis,
+    data_quality,
+    filter_options,
+    load_eligible_data,
+    load_provider_data,
+)
 
 
 ROOT = Path(__file__).parent
@@ -50,9 +56,26 @@ st.set_page_config(
 # rerun (every widget click) a fresh deep copy of the full provider table,
 # which steadily eats the Community Cloud memory limit until the app is killed.
 # Treat these objects as read-only.
+# Only the columns the dashboard's calculations read. The full parquet is
+# ~196 MB in memory; this slim version is ~18 MB and gives identical results.
+APP_COLUMNS = [
+    "Provider_Number",
+    "Service_Location_Number",
+    "CountyName",
+    "FI_Provider_Specialty",
+    "specialty_status",
+    "geo_status",
+    "ca_county",
+]
+CATEGORY_COLUMNS = ["CountyName", "FI_Provider_Specialty", "specialty_status", "geo_status"]
+
+
 @st.cache_resource(show_spinner="Loading cleaned provider and eligible data...")
 def load_inputs():
-    providers = load_provider_data(PROVIDER_PATH)
+    providers = load_provider_data(PROVIDER_PATH)  # validates the full schema
+    providers = providers[APP_COLUMNS].copy()
+    for column in CATEGORY_COLUMNS:
+        providers[column] = providers[column].astype("category")
     eligible = load_eligible_data(ELIGIBLE_PATH)
     return providers, eligible
 
@@ -117,14 +140,35 @@ def geojson_subset(county_geojson, geoids):
 @st.cache_data(show_spinner=False)
 def get_filter_options():
     providers, eligible = load_inputs()
-    return dashboard_outputs(providers, eligible)["filter_options"]
+    return filter_options(providers, eligible)
 
 
-# Small results, keyed only by the two filter values; capped so the cache can't grow unbounded.
+@st.cache_data(show_spinner=False)
+def get_data_quality():
+    providers, _ = load_inputs()
+    return data_quality(providers)
+
+
+# Returns ONLY the small tables the page displays (a few KB). The backend's
+# dashboard_outputs() also returns two full copies of the provider records
+# (~385 MB per filter choice), which is what was crashing the app.
 @st.cache_data(show_spinner="Updating results...", max_entries=64)
 def get_outputs(specialty, county):
     providers, eligible = load_inputs()
-    return dashboard_outputs(providers, eligible, specialty=specialty, county=county)
+    analysis = county_analysis(providers, eligible, specialty)
+    table = analysis["county_table"]
+    if county != "All counties":
+        selection = table[table["CountyName"] == county].copy()
+    else:
+        selection = table.copy()
+    return {
+        "county_table": table,
+        "priority_counties": analysis["priority_counties"],
+        "statewide_median": analysis["statewide_median"],
+        "counties_below_median": analysis["counties_below_median"],
+        "selected_county": selection.reset_index(drop=True),
+        "data_quality": get_data_quality(),
+    }
 
 
 def pct(value):
@@ -276,7 +320,8 @@ def make_comparison_chart(county_table, median, priority_names=(), selected_coun
         for name, is_below in zip(chart["CountyName"], below)
     ]
     labels = [
-        f"{value:.1f}" if (name in priority_names or name == selected_county) else ""
+        "0 (no locations)" if value == 0
+        else (f"{value:.2f}" if (name in priority_names or name == selected_county) else "")
         for name, value in zip(chart["CountyName"], chart["locations_per_10k"])
     ]
     delta = chart["locations_per_10k"] - median if median is not None else chart["locations_per_10k"] * float("nan")
