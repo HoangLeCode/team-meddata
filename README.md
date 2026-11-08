@@ -17,6 +17,33 @@ priority-county table, and a statewide-median comparison chart. If the
 canonical Parquet is not present, first run the established provider-cleaning
 pipeline to recreate `data/clean/providers_clean.parquet`.
 
+## Intended Users and Decisions
+
+The dashboard is designed for healthcare planners, public health researchers, and healthcare organizations.
+
+It helps users compare provider availability across counties and specialties, identify areas with relatively low provider availability, and support healthcare planning decisions.
+
+## Live App and Demo Video
+
+**Live App:** https://team-meddata-cxmo62uydkuuygelakawi8.streamlit.app
+
+**Demo Video:** https://www.youtube.com/watch?v=xMJg7_EqEZ8
+
+## Data Scope
+
+The dashboard focuses on Medi-Cal Fee-for-Service (FFS) provider availability across all 58 California counties.
+
+It uses the cleaned provider dataset and county-level Medi-Cal eligible population data. The cleaned provider dataset contains 372,778 enrollment records. The eligible population data is from September 2026.
+
+The dashboard loads the cleaned provider dataset and keeps the columns needed for analysis rather than using a random sample.
+
+The exact provider data snapshot date has not been confirmed, so the two datasets may represent different reporting periods.
+
+## Current Limitations
+
+- Results depend on the accuracy and completeness of the available data.
+- Provider availability does not necessarily reflect actual appointment availability.
+- County-level comparisons may not capture differences within individual counties.
 ---
 
 Use this repository to investigate two candidate project Visions, combine the
